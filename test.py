@@ -43,17 +43,17 @@ def extract_info():
     except Exception as e:
         return jsonify({'error': 'Failed to process the PDF: ' + str(e),'status':'Failed'}), 400
         
-    emails,phone_numbers = extractEmailAndPhone(all_text)
+    emails,phoneNumbers = extractEmailAndPhone(all_text)
     filtered_names = extractName(all_text)
     CandidateNames = calculateSimilarity(fileName , filtered_names , stopWords)
     
     return jsonify({
         'data':{
-            'names': applyNameformating(CandidateNames.iloc[0]['IntialName'],
+            'Name': applyNameformating(CandidateNames.iloc[0]['IntialName'],
                                         CandidateNames.iloc[0]['TrimmedName']
                                         ),
-            'emails': emails,
-            'phone_numbers': phone_numbers
+            'Email': emails,
+            'Phone_Number': phoneNumbers
         },
         'status':"Success",
         }), 200
@@ -65,10 +65,18 @@ def extractEmailAndPhone(text):
         phone_pattern = r'\+?\d[\d\s-]{7,}\d'
         
         emails = re.findall(email_pattern, text)
-        phone_numbers = re.findall(phone_pattern, text)
-        return emails,phone_numbers
+        phoneNumbers = re.findall(phone_pattern, text)
+        if len(emails) > 0:
+            emails = emails[0]
+        else : 
+            emails = 'No email Found'
+        if len(phoneNumbers) > 0:
+            phoneNumbers = phoneNumbers[0]
+        else:
+            phoneNumbers ='No Mobile Number Found'
+        return emails,phoneNumbers
     except Exception as e:
-        return ['Error in Finding Email'],['Error in Finding Phone']
+        return 'Error in Finding Email','Error in Finding Phone'
 
 def extractName(text):
     try:
