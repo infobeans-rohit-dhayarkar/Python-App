@@ -6,6 +6,7 @@ import re
 from flask import Flask, jsonify, request
 import pandas as pd
 import Levenshtein
+import collections
 
 
 app = Flask(__name__)
@@ -13,7 +14,7 @@ app = Flask(__name__)
 # Load the spaCy model
 nlp = spacy.load("en_core_web_sm")
 stopWords =['naukri','linkedin','resume','salesforce','heroku','mulesoft','software','engineer',
-            'computer','science','pdf']
+            'computer','science','pdf','python','developer','admin']
 
 @app.route('/extract', methods=['POST'])
 def extract_info():
@@ -48,7 +49,9 @@ def extract_info():
     
     return jsonify({
         'data':{
-            'names': CandidateNames.iloc[0]['Name'],
+            'names': applyNameformating(CandidateNames.iloc[0]['IntialName'],
+                                        CandidateNames.iloc[0]['TrimmedName']
+                                        ),
             'emails': emails,
             'phone_numbers': phone_numbers
         },
@@ -96,10 +99,25 @@ def calculateSimilarity(string1 , string2 , stopWords):
         similarity_score = 1 - (lev_distance / max(len(claenstring1), len(claenstring2)))
 
         # Append the new row
-        new_data = pd.DataFrame([{'Name': claenstring2, 'score': similarity_score}])
+        new_data = pd.DataFrame([{'IntialName': name,'TrimmedName':claenstring2, 'score': similarity_score}])
         df = pd.concat([df, new_data], ignore_index=True)
     df_sorted = df.sort_values(by='score', ascending=False)
     return df_sorted
+
+
+def applyNameformating(IntialName ,TrimmedName ):
+    
+    char_count = collections.Counter(TrimmedName)
+    result = []
+    for char in IntialName:
+        if char.lower() in char_count and char_count[char.lower()] > 0:
+            result.append(char)
+            char_count[char.lower()] -= 1
+        elif char == ' ':
+            result.append(char)
+
+    final_result = ''.join(result)
+    return final_result
 
 if __name__ == '__main__':
     app.run(debug=True)
