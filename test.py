@@ -16,7 +16,7 @@ nlp = spacy.load("en_core_web_sm")
 stopWords =['naukri','linkedin','resume','salesforce','heroku','mulesoft','software','engineer',
             'computer','science','pdf','python','developer','admin']
 
-@app.route('/extract', methods=['GET'])
+@app.route('/extract', methods=['POST'])
 def extract_info():
     # Extract the base64 string from the request
     data = request.json.get('base64_string')
